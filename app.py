@@ -51,8 +51,6 @@ def index():
                 print(f"[MATCH] ✅ {item['episode']} - {item['file']} - {text}")
             else:
                 print(f"[SKIP] ❌ {text}")
-            if len(matches) >= 50:
-                break
     else:
         print("[INFO] No query input.")
 
