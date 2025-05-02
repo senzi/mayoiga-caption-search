@@ -175,4 +175,8 @@ cython_debug/
 
 /mayoiga
 /compressed_videos
-/screenshots
+/static/screenshots/*
+!static/screenshots/.gitkeep
+screenshots.zip
+
+/scripts

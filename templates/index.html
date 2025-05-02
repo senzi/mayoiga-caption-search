@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dracula"></html>
+<head>
+  <meta charset="UTF-8">
+  <title>迷家截图模糊检索</title>
+  <!-- daisyUI + Tailwind CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-base-200 min-h-screen">
+  <div class="max-w-4xl mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">迷家截图模糊检索</h1>
+    <form method="get" class="mb-6 flex gap-2">
+      <input type="text" name="q" value="{{ query }}" placeholder="输入关键词" class="input input-bordered w-full" />
+      <button type="submit" class="btn btn-primary">搜索</button>
+    </form>
+
+    {% if results %}
+      <p class="mb-4">找到 {{ results|length }} 条结果：</p>
+      <div id="result-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {# 初始渲染前 40 张，剩余由 lazyload.js 控制 #}
+        {% for item in results[:40] %}
+          <div class="card shadow bg-base-100" data-key="{{ item.episode }}-{{ item.file }}">
+            <figure class="px-2 pt-2">
+              <img src="{{ url_for('serve_image', ep=item.episode, filename=item.file) }}" alt="截图" class="rounded" loading="lazy">
+            </figure>
+            <div class="card-body p-4">
+              <p class="mb-2">{{ item.text }}</p>
+              <p class="text-xs text-gray-400 mb-2">{{ item.episode }}</p>
+              <button class="btn btn-sm btn-outline copy-btn" data-img="{{ url_for('serve_image', ep=item.episode, filename=item.file) }}">📋 复制</button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% if results|length > 40 %}
+        <div id="lazyload-sentinel" class="h-8"></div>
+      {% endif %}
+    {% elif query %}
+      <p>没有找到和“{{ query }}”匹配的截图。</p>
+    {% endif %}
+  </div>
+  <!-- toast 容器 -->
+  <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"></div>
+  <script src="{{ url_for('static', filename='copy.js') }}"></script>
+  <script src="{{ url_for('static', filename='lazyload.js') }}"></script>
+  <script src="{{ url_for('static', filename='toast.js') }}"></script>
+  <script>
+    // 传递所有结果数据给 lazyload.js
+    window.allResults = [
+      {% for item in results %}
+        {
+          text: {{ item.text|tojson }},
+          episode: {{ item.episode|tojson }},
+          file: {{ item.file|tojson }},
+          img: {{ url_for('serve_image', ep=item.episode, filename=item.file)|tojson }}
+        }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ];
+  </script>
+</body>
+</html>
